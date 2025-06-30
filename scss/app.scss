@@ -9,11 +9,24 @@ main {
     align-items: center;
 }
 
-.controls {
+.params {
     display: flex;
     flex-direction: row;
     div {
         display: flex;
         flex-direction: column;
     }
+}
+
+label {
+    text-align: center;
+    width: 100%;
+}
+
+.autorotate {
+    margin-top: 5px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
 }

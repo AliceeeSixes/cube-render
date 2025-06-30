@@ -13,17 +13,34 @@
         </canvas>
 
         <div class="controls">
-            <div>
-                <label>Pitch</label>
-                <input type="range" min="0" max="360" id="pitch" value="45"/>
+            <div class="params">
+                <div>
+                    <label>X</label>
+                    <input type="range" min="-100" max="100" id="x" value="0"/>
+                </div>
+                <div>
+                    <label>Y</label>
+                    <input type="range" min="-100" max="100" id="y" value="0"/>
+                </div>
+                <div>
+                    <label>Pitch</label>
+                    <input type="range" min="0" max="360" id="pitch" value="45"/>
+                </div>
+                <div>
+                    <label>Yaw</label>
+                    <input type="range" min="0" max="360" id="yaw" value="45"/>
+                </div>
+                <div>
+                    <label>Roll</label>
+                    <input type="range" min="0" max="360" id="roll" value="45"/>
+                </div>
             </div>
-            <div>
-                <label>Yaw</label>
-                <input type="range" min="0" max="360" id="yaw" value="45"/>
-            </div>
-            <div>
-                <label>Roll</label>
-                <input type="range" min="0" max="360" id="roll" value="45"/>
+
+
+            <div class="autorotate">
+                <button onclick="autoPitch += 1; autoPitch = autoPitch % 2; AutoRotate()" id="spin-button">Spin Pitch</button>
+                <button onclick="autoYaw += 1; autoYaw = autoYaw % 2; AutoRotate()" id="spin-button">Spin Yaw</button>
+                <button onclick="autoRoll += 1; autoRoll = autoRoll % 2; AutoRotate()" id="spin-button">Spin Roll</button>
             </div>
 
         </div>

@@ -16,12 +16,10 @@ class Vector3 {
 
 
 
-function CalculatePoints(center, radius, pitch, yaw, roll) {
-
-    center = new Point(0,0,0);
+function CalculatePoints(radius, pitch, yaw, roll) {
 
     // Create cube points
-    points = findCorners(center, radius, pitch, yaw, roll);
+    points = findCorners(radius, pitch, yaw, roll);
 
     // Draw wireframe on canvas
     a = points[0];
@@ -40,7 +38,7 @@ function CalculatePoints(center, radius, pitch, yaw, roll) {
 }
 
 
-function findCorners(center, radius, pitch, yaw, roll)
+function findCorners(radius, pitch, yaw, roll)
 {
     // Convert pitch yaw and roll to radians
     pitch = pitch/180 * Math.PI;
@@ -53,36 +51,19 @@ function findCorners(center, radius, pitch, yaw, roll)
     frontVector = new Vector3(0, 0, radius);
 
 
-    // Find rotation matrices
-    pitch = [
-        1,0,0,
-        0,Math.cos(pitch),-Math.sin(pitch),
-        0,Math.sin(pitch),Math.cos(pitch),
+    // Find rotation matrix
+    rotation = [
+        Math.cos(yaw)*Math.cos(pitch), Math.cos(yaw)*Math.sin(pitch)*Math.sin(roll) - Math.sin(yaw)*Math.cos(roll), Math.cos(yaw)*Math.sin(pitch)*Math.cos(roll) + Math.sin(yaw)*Math.sin(roll),
+        Math.sin(yaw)*Math.cos(pitch), Math.sin(yaw)*Math.sin(pitch)*Math.sin(roll) + Math.cos(yaw)*Math.cos(roll), Math.sin(yaw)*Math.sin(pitch)*Math.cos(roll) - Math.cos(yaw)*Math.sin(roll),
+        - Math.sin(pitch), Math.cos(pitch)*Math.sin(roll), Math.cos(pitch)*Math.cos(roll),
     ];
 
-    yaw = [
-        Math.cos(yaw),0,Math.sin(yaw),
-        0,1,0,
-        -Math.sin(yaw),0,Math.cos(yaw),
-    ];
-
-    roll = [
-        Math.cos(roll),-Math.sin(roll),0,
-        Math.sin(roll),Math.cos(roll),0,
-        0,0,1,
-    ];
-
-    // Combine rotation vectors
-    rollPitch = multiplyMatrices(roll, pitch);
-    rotation = multiplyMatrices(rollPitch, yaw);
 
     // Rotate vectors via matrix multiplication;
     rightVector = multiplyMatrixAndPoint(rotation, rightVector);
     upVector = multiplyMatrixAndPoint(rotation, upVector);
     frontVector = multiplyMatrixAndPoint(rotation, frontVector);
-    console.log(rightVector);
-    console.log(upVector);
-    console.log(frontVector);
+
 
     a = new Point(rightVector.x + upVector.x + frontVector.x, rightVector.y + upVector.y + frontVector.y, rightVector.z + upVector.z + frontVector.z); // top front right
     b = new Point(rightVector.x + upVector.x - frontVector.x, rightVector.y + upVector.y - frontVector.y, rightVector.z + upVector.z - frontVector.z); // top back right
@@ -93,8 +74,7 @@ function findCorners(center, radius, pitch, yaw, roll)
     g = new Point(- rightVector.x - upVector.x - frontVector.x, - rightVector.y - upVector.y - frontVector.y, - rightVector.z - upVector.z - frontVector.z); // bottom back left
     h = new Point(- rightVector.x - upVector.x + frontVector.x, - rightVector.y - upVector.y + frontVector.y, - rightVector.z - upVector.z + frontVector.z); // bottom front left
 
-    console.log(a);
-    console.log(b);
+
     return [a,b,c,d,e,f,g,h];
 }
 
@@ -126,19 +106,8 @@ function multiplyMatrixAndPoint(matrix, point) {
     return result;
 }
 
-// function to combine rotation matrices
-function multiplyMatrices(a, b) {
-    // Element-wise matrix multiplication
-    c = [
-        (a[0]*b[0] + a[1]*b[3] + a[2]*b[6]), (a[0]*b[1] + a[1]*b[4] + a[2]*b[7]), (a[0]*b[2] + a[1]*b[5] + a[2]*b[8]),
-        (a[3]*b[0] + a[4]*b[3] + a[5]*b[6]), (a[3]*b[1] + a[4]*b[4] + a[5]*b[7]), (a[3]*b[2] + a[4]*b[5] + a[5]*b[8]),
-        (a[6]*b[0] + a[7]*b[3] + a[8]*b[6]), (a[6]*b[1] + a[7]*b[4] + a[8]*b[7]), (a[6]*b[2] + a[7]*b[5] + a[8]*b[8]),
-    ];
 
-    return c;
-}
-
-function DrawPoints(lines)
+function DrawPoints(lines, offsetX, offsetY)
 {
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
@@ -147,8 +116,8 @@ function DrawPoints(lines)
 
     ctx.beginPath();
     lines.forEach((points) => {
-        start = [points[0].x + 400, points[0].y + 400];
-        end = [points[1].x + 400, points[1].y + 400];
+        start = [points[0].x + 400 + parseInt(offsetX), points[0].y + 400 + parseInt(offsetY)];
+        end = [points[1].x + 400 + parseInt(offsetX), points[1].y + 400 + parseInt(offsetY)];
         
         ctx.moveTo(start[0], start[1]);
         ctx.lineTo(end[0], end[1]);
@@ -159,14 +128,41 @@ function DrawPoints(lines)
 
 
 function GenerateCube() {
-    center = new Point(0,0,0);
+    offsetX = document.getElementById("x").value;
+    offsetY = document.getElementById("y").value;
     radius = 100;
     pitch = document.getElementById("pitch").value;
     yaw = document.getElementById("yaw").value;
     roll = document.getElementById("roll").value;
-    DrawPoints(CalculatePoints(center, radius, pitch, yaw, roll));
+    DrawPoints(CalculatePoints(radius, pitch, yaw, roll), offsetX, offsetY);
+}
+
+function RotateCube(pitch, yaw, roll) {
+    document.getElementById("pitch").value = (parseInt(document.getElementById("pitch").value) + pitch) % 360;
+    document.getElementById("yaw").value = (parseInt(document.getElementById("yaw").value) + yaw) % 360;
+    document.getElementById("roll").value = (parseInt(document.getElementById("roll").value) + roll) % 360;
+
+    GenerateCube();
 }
 
 
+let interval;
+document.body.onmousedown = function() { 
+  interval = setInterval(GenerateCube, 20);
+}
+document.body.onmouseup = function() {
+  clearInterval(interval);
+}
 
-setInterval(GenerateCube, 20);
+let rotating = 0;
+let autoPitch = 0;
+let autoYaw = 0;
+let autoRoll = 0;
+let rotateInterval;
+function AutoRotate() {
+    clearInterval(rotateInterval);1;
+    rotateInterval = setInterval(RotateCube, 20, autoPitch, autoYaw, autoRoll);
+}
+
+GenerateCube();
+

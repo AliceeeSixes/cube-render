@@ -7,11 +7,22 @@ main {
   flex-direction: column;
   align-items: center; }
 
-.controls {
+.params {
   display: flex;
   flex-direction: row; }
-  .controls div {
+  .params div {
     display: flex;
     flex-direction: column; }
+
+label {
+  text-align: center;
+  width: 100%; }
+
+.autorotate {
+  margin-top: 5px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 10px; }
 
 /*# sourceMappingURL=app.css.map */
