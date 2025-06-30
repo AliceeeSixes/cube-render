@@ -1,6 +1,9 @@
 canvas {
   border: 1px solid black;
-  width: 800px; }
+  width: 400px; }
+  @media (min-width: 1000px) {
+    canvas {
+      width: 800px; } }
 
 main {
   display: flex;

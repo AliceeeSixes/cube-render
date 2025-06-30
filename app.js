@@ -142,14 +142,16 @@ function multiplyMatrixAndPoint(matrix, point) {
 function RenderPolygonEdges(edges, perspectiveMult = 1)
 {
     const canvas = document.getElementById("canvas");
+    halfWidth = canvas.width/2; 
     const ctx = canvas.getContext("2d");
+    foreshorteningDivisor = 500;
 
     ctx.beginPath();
     edges.forEach((edge) => {
-        foreshortening = (1 / (perspectiveMult ** (-(edge[0].z - radius/2)/400)));
-        start = [edge[0].x * foreshortening + 400, edge[0].y * foreshortening + 400];
-        foreshortening = (1 / (perspectiveMult ** (-(edge[1].z - radius/2)/400)));
-        end = [edge[1].x * foreshortening + 400, edge[1].y * foreshortening + 400];
+        foreshortening = (1 / (perspectiveMult ** (-(edge[0].z - radius/2)/foreshorteningDivisor)));
+        start = [edge[0].x * foreshortening + halfWidth, edge[0].y * foreshortening + halfWidth];
+        foreshortening = (1 / (perspectiveMult ** (-(edge[1].z - radius/2)/foreshorteningDivisor)));
+        end = [edge[1].x * foreshortening + halfWidth, edge[1].y * foreshortening + halfWidth];
         
         ctx.moveTo(start[0], start[1]);
         ctx.lineTo(end[0], end[1]);
@@ -164,18 +166,20 @@ function RenderPolygonFaces(faces, perspectiveMult = 1) {
     faces.sort(sortFacesByZ);
 
     const canvas = document.getElementById("canvas");
+    halfWidth = canvas.width/2; 
     const ctx = canvas.getContext("2d");
+    foreshorteningDivisor = 500;
     
     faces.forEach((face) => {
         ctx.beginPath();
-        foreshortening = (1 / (perspectiveMult ** (-(face[0][0].z - radius/2)/400)));
-        a = [face[0][0].x * foreshortening + 400, face[0][0].y * foreshortening + 400];
-        foreshortening = (1 / (perspectiveMult ** (-(face[0][1].z - radius/2)/400)));
-        b = [face[0][1].x * foreshortening + 400, face[0][1].y * foreshortening + 400];
-        foreshortening = (1 / (perspectiveMult ** (-(face[0][2].z - radius/2)/400)));
-        c = [face[0][2].x * foreshortening + 400, face[0][2].y * foreshortening + 400];
-        foreshortening = (1 / (perspectiveMult ** (-(face[0][3].z - radius/2)/400)));
-        d = [face[0][3].x * foreshortening + 400, face[0][3].y * foreshortening + 400];
+        foreshortening = (1 / (perspectiveMult ** (-(face[0][0].z - radius/2)/foreshorteningDivisor)));
+        a = [face[0][0].x * foreshortening + halfWidth, face[0][0].y * foreshortening + halfWidth];
+        foreshortening = (1 / (perspectiveMult ** (-(face[0][1].z - radius/2)/foreshorteningDivisor)));
+        b = [face[0][1].x * foreshortening + halfWidth, face[0][1].y * foreshortening + halfWidth];
+        foreshortening = (1 / (perspectiveMult ** (-(face[0][2].z - radius/2)/foreshorteningDivisor)));
+        c = [face[0][2].x * foreshortening + halfWidth, face[0][2].y * foreshortening + halfWidth];
+        foreshortening = (1 / (perspectiveMult ** (-(face[0][3].z - radius/2)/foreshorteningDivisor)));
+        d = [face[0][3].x * foreshortening + halfWidth, face[0][3].y * foreshortening + halfWidth];
         
         ctx.moveTo(a[0], a[1]);
         ctx.lineTo(b[0], b[1]);
@@ -183,10 +187,12 @@ function RenderPolygonFaces(faces, perspectiveMult = 1) {
         ctx.lineTo(d[0], d[1]);
         ctx.lineTo(a[0], a[1]);
         ctx.closePath();
-        ctx.fillStyle = face[1];
         if (showFaces == 1) {
-            ctx.fill();
+            ctx.fillStyle = face[1];
+        } else {
+            ctx.fillStyle = "white";
         }
+        ctx.fill();
         if (showVisibleEdges == 1) {
             ctx.stroke();
         }
@@ -267,9 +273,7 @@ function GenerateCube() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     perspectiveMult = document.getElementById("perspective").value;
-    if (showFaces == 1) {
-        GenerateCubeFaces();
-    }
+    GenerateCubeFaces();
     if (showHiddenEdges == 1) {
         GenerateCubeEdges();
     }

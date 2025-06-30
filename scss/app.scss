@@ -1,6 +1,9 @@
 canvas {
     border: 1px solid black;
-    width: 800px;
+    width: 400px;
+    @media (min-width: 1000px) {
+        width: 800px;
+    }
 }
 
 main {
