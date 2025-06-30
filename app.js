@@ -4,6 +4,14 @@ class Point {
         this.y = y;
         this.z = z;
     }
+
+    Is(other) {
+        if (this.x == other.x && this.y == other.y && this.z == other.z) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
 
 class Vector3 {
@@ -14,7 +22,7 @@ class Vector3 {
     }
 }
 
-function FindPoints(radius, pitch, yaw, roll) {
+function FindVertices(radius, pitch, yaw, roll) {
     // Convert pitch yaw and roll to radians
     pitch = pitch/180 * Math.PI;
     yaw = yaw/180 * Math.PI;
@@ -54,7 +62,7 @@ function FindPoints(radius, pitch, yaw, roll) {
 
 function FindEdges(radius, pitch, yaw, roll)
 {
-    points = FindPoints(radius, pitch, yaw, roll);
+    points = FindVertices(radius, pitch, yaw, roll);
     a = points[0];
     b = points[1];
     c = points[2];
@@ -70,7 +78,7 @@ function FindEdges(radius, pitch, yaw, roll)
 
 function FindFaces(radius, pitch, yaw, roll)
 {
-    points = FindPoints(radius, pitch, yaw, roll);
+    points = FindVertices(radius, pitch, yaw, roll);
     a = points[0];
     b = points[1];
     c = points[2];
@@ -84,7 +92,7 @@ function FindFaces(radius, pitch, yaw, roll)
     faceB = VisibleFace([c, d, h, g], [a, b, f, e]);
     faceC = VisibleFace([b, c, g, f], [a, d, h, e]);
 
-    faces = [[faceA, "rgba(255, 255, 0)"], [faceB, "rgba(255, 0, 255)"], [faceC, "rgba(0, 255, 255)"]];
+    faces = [[faceA, "rgb(255, 255, 0)"], [faceB, "rgb(255, 0, 255)"], [faceC, "rgb(0, 255, 255)"]];
     return faces;
 }
 
@@ -99,6 +107,7 @@ function VisibleFace(a, b)
         return b;
     }
 }
+
 
 
 
@@ -137,13 +146,11 @@ function RenderPolygonEdges(edges, perspectiveMult = 1)
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
     ctx.beginPath();
     edges.forEach((edge) => {
-        foreshortening = (1 / (perspectiveMult ** (-edge[0].z/400)));
+        foreshortening = (1 / (perspectiveMult ** (-(edge[0].z - radius/2)/400)));
         start = [edge[0].x * foreshortening + 400, edge[0].y * foreshortening + 400];
-        foreshortening = (1 / (perspectiveMult ** (-edge[1].z/400)));
+        foreshortening = (1 / (perspectiveMult ** (-(edge[1].z - radius/2)/400)));
         end = [edge[1].x * foreshortening + 400, edge[1].y * foreshortening + 400];
         
         ctx.moveTo(start[0], start[1]);
@@ -153,23 +160,23 @@ function RenderPolygonEdges(edges, perspectiveMult = 1)
     ctx.stroke();
 }
 
+
+
 function RenderPolygonFaces(faces, perspectiveMult = 1) {
     faces.sort(sortFacesByZ);
 
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     faces.forEach((face) => {
         ctx.beginPath();
-        foreshortening = (1 / (perspectiveMult ** (-face[0][0].z/400)));
+        foreshortening = (1 / (perspectiveMult ** (-(face[0][0].z - radius/2)/400)));
         a = [face[0][0].x * foreshortening + 400, face[0][0].y * foreshortening + 400];
-        foreshortening = (1 / (perspectiveMult ** (-face[0][1].z/400)));
+        foreshortening = (1 / (perspectiveMult ** (-(face[0][1].z - radius/2)/400)));
         b = [face[0][1].x * foreshortening + 400, face[0][1].y * foreshortening + 400];
-        foreshortening = (1 / (perspectiveMult ** (-face[0][2].z/400)));
+        foreshortening = (1 / (perspectiveMult ** (-(face[0][2].z - radius/2)/400)));
         c = [face[0][2].x * foreshortening + 400, face[0][2].y * foreshortening + 400];
-        foreshortening = (1 / (perspectiveMult ** (-face[0][3].z/400)));
+        foreshortening = (1 / (perspectiveMult ** (-(face[0][3].z - radius/2)/400)));
         d = [face[0][3].x * foreshortening + 400, face[0][3].y * foreshortening + 400];
         
         ctx.moveTo(a[0], a[1]);
@@ -179,7 +186,12 @@ function RenderPolygonFaces(faces, perspectiveMult = 1) {
         ctx.lineTo(a[0], a[1]);
         ctx.closePath();
         ctx.fillStyle = face[1];
-        ctx.fill();
+        if (showFaces == 1) {
+            ctx.fill();
+        }
+        if (showVisibleEdges == 1) {
+            ctx.stroke();
+        }
     });
 }
 function logAverageZ(faces) {
@@ -217,6 +229,7 @@ function GenerateCubeFaces() {
     RenderPolygonFaces(FindFaces(radius, pitch, yaw, roll), perspectiveMult);
 }
 
+
 function RotateCube(pitch, yaw, roll) {
     document.getElementById("pitch").value = (parseInt(document.getElementById("pitch").value) + pitch) % 360;
     document.getElementById("yaw").value = (parseInt(document.getElementById("yaw").value) + yaw) % 360;
@@ -246,20 +259,24 @@ function AutoRotate() {
     }
 }
 
-let cubeType = 1;
+let showVisibleEdges = 1;
+let showHiddenEdges = 1;
+let showFaces = 1;
+
 function GenerateCube() {
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     perspectiveMult = document.getElementById("perspective").value;
-    if (cubeType == 0) {
-        GenerateCubeEdges();
-    } else if (cubeType == 1) {
+    if (showFaces == 1) {
         GenerateCubeFaces();
+    }
+    if (showHiddenEdges == 1) {
+        GenerateCubeEdges();
     }
 }
 
-function setCubeType(n) {
-    cubeType = n;
-    GenerateCube();
-}
 
 
 let perspectiveMult = 5;

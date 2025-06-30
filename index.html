@@ -40,8 +40,10 @@
             </div>
 
             <div class="cube-model">
-                <button onclick="setCubeType(0);" id="spin-button">Wireframe</button>
-                <button onclick="setCubeType(1)" id="spin-button">Coloured Cube</button>
+                <button onclick="showVisibleEdges = 1; showHiddenEdges = 1; GenerateCube()">Full Wireframe</button>
+                <button onclick="showVisibleEdges = 1; showHiddenEdges = 0; GenerateCube()" id="spin-button">Visible Edges Only</button>
+                <button onclick="showVisibleEdges = 0; showHiddenEdges = 0; GenerateCube()" id="spin-button">No Edges</button>
+                <button onclick="showFaces = (showFaces + 1) % 2; GenerateCube()" id="spin-button">Toggle Faces</button>
             </div>
 
         </div>
