@@ -111,8 +111,6 @@ function VisibleFace(a, b)
 
 
 
-
-
 // function for matrix multiplication
 function multiplyMatrixAndPoint(matrix, point) {
     // Extract values from matrix
@@ -260,7 +258,7 @@ function AutoRotate() {
 }
 
 let showVisibleEdges = 1;
-let showHiddenEdges = 1;
+let showHiddenEdges = 0;
 let showFaces = 1;
 
 function GenerateCube() {
@@ -277,7 +275,4 @@ function GenerateCube() {
     }
 }
 
-
-
-let perspectiveMult = 5;
 GenerateCube();
