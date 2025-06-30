@@ -14,32 +14,7 @@ class Vector3 {
     }
 }
 
-
-
-function CalculatePoints(radius, pitch, yaw, roll) {
-
-    // Create cube points
-    points = findCorners(radius, pitch, yaw, roll);
-
-    // Draw wireframe on canvas
-    a = points[0];
-    b = points[1];
-    c = points[2];
-    d = points[3];
-    e = points[4];
-    f = points[5];
-    g = points[6];
-    h = points[7];
-
-    lines = [[a, b], [b, c], [c, d], [d,a], [e, f], [f, g], [g, h], [h, e], [a, e], [b, f], [c, g], [d, h]];
-
-
-    return(lines);
-}
-
-
-function findCorners(radius, pitch, yaw, roll)
-{
+function FindPoints(radius, pitch, yaw, roll) {
     // Convert pitch yaw and roll to radians
     pitch = pitch/180 * Math.PI;
     yaw = yaw/180 * Math.PI;
@@ -74,9 +49,59 @@ function findCorners(radius, pitch, yaw, roll)
     g = new Point(- rightVector.x - upVector.x - frontVector.x, - rightVector.y - upVector.y - frontVector.y, - rightVector.z - upVector.z - frontVector.z); // bottom back left
     h = new Point(- rightVector.x - upVector.x + frontVector.x, - rightVector.y - upVector.y + frontVector.y, - rightVector.z - upVector.z + frontVector.z); // bottom front left
 
-
-    return [a,b,c,d,e,f,g,h];
+    return [a, b, c, d, e, f, g, h];
 }
+
+function FindEdges(radius, pitch, yaw, roll)
+{
+    points = FindPoints(radius, pitch, yaw, roll);
+    a = points[0];
+    b = points[1];
+    c = points[2];
+    d = points[3];
+    e = points[4];
+    f = points[5];
+    g = points[6];
+    h = points[7];
+
+    edges = [[a, b], [b, c], [c, d], [d,a], [e, f], [f, g], [g, h], [h, e], [a, e], [b, f], [c, g], [d, h]];    
+    return edges;
+}
+
+function FindFaces(radius, pitch, yaw, roll)
+{
+    points = FindPoints(radius, pitch, yaw, roll);
+    a = points[0];
+    b = points[1];
+    c = points[2];
+    d = points[3];
+    e = points[4];
+    f = points[5];
+    g = points[6];
+    h = points[7];
+
+    faceA = VisibleFace([a, b, c, d], [e, f, g, h]);
+    faceB = VisibleFace([c, d, h, g], [a, b, f, e]);
+    faceC = VisibleFace([b, c, g, f], [a, d, h, e]);
+
+    faces = [[faceA, "rgba(255, 255, 0)"], [faceB, "rgba(255, 0, 255)"], [faceC, "rgba(0, 255, 255)"]];
+    return faces;
+}
+
+function VisibleFace(a, b)
+{
+    zA = (a[0].z + a[1].z + a[2].z + a[3].z) / 4;
+    zB = (b[0].z + b[1].z + b[2].z + b[3].z) / 4;
+
+    if (zA > zB) {
+        return a;
+    } else {
+        return b;
+    }
+}
+
+
+
 
 
 // function for matrix multiplication
@@ -107,7 +132,7 @@ function multiplyMatrixAndPoint(matrix, point) {
 }
 
 
-function DrawPoints(lines, offsetX, offsetY)
+function RenderPolygonEdges(edges, perspectiveMult = 1)
 {
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
@@ -115,9 +140,11 @@ function DrawPoints(lines, offsetX, offsetY)
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     ctx.beginPath();
-    lines.forEach((points) => {
-        start = [points[0].x + 400 + parseInt(offsetX), points[0].y + 400 + parseInt(offsetY)];
-        end = [points[1].x + 400 + parseInt(offsetX), points[1].y + 400 + parseInt(offsetY)];
+    edges.forEach((edge) => {
+        foreshortening = (1 / (perspectiveMult ** (-edge[0].z/400)));
+        start = [edge[0].x * foreshortening + 400, edge[0].y * foreshortening + 400];
+        foreshortening = (1 / (perspectiveMult ** (-edge[1].z/400)));
+        end = [edge[1].x * foreshortening + 400, edge[1].y * foreshortening + 400];
         
         ctx.moveTo(start[0], start[1]);
         ctx.lineTo(end[0], end[1]);
@@ -126,15 +153,68 @@ function DrawPoints(lines, offsetX, offsetY)
     ctx.stroke();
 }
 
+function RenderPolygonFaces(faces, perspectiveMult = 1) {
+    faces.sort(sortFacesByZ);
 
-function GenerateCube() {
-    offsetX = document.getElementById("x").value;
-    offsetY = document.getElementById("y").value;
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    faces.forEach((face) => {
+        ctx.beginPath();
+        foreshortening = (1 / (perspectiveMult ** (-face[0][0].z/400)));
+        a = [face[0][0].x * foreshortening + 400, face[0][0].y * foreshortening + 400];
+        foreshortening = (1 / (perspectiveMult ** (-face[0][1].z/400)));
+        b = [face[0][1].x * foreshortening + 400, face[0][1].y * foreshortening + 400];
+        foreshortening = (1 / (perspectiveMult ** (-face[0][2].z/400)));
+        c = [face[0][2].x * foreshortening + 400, face[0][2].y * foreshortening + 400];
+        foreshortening = (1 / (perspectiveMult ** (-face[0][3].z/400)));
+        d = [face[0][3].x * foreshortening + 400, face[0][3].y * foreshortening + 400];
+        
+        ctx.moveTo(a[0], a[1]);
+        ctx.lineTo(b[0], b[1]);
+        ctx.lineTo(c[0], c[1]);
+        ctx.lineTo(d[0], d[1]);
+        ctx.lineTo(a[0], a[1]);
+        ctx.closePath();
+        ctx.fillStyle = face[1];
+        ctx.fill();
+    });
+}
+function logAverageZ(faces) {
+    faces.forEach((face) => {
+        console.log(averageZ(face[0]));
+    });
+}
+
+function averageZ(face) {
+    return (face[0].z + face[1].z + face[2].z + face[3].z)/4;
+}
+
+function sortFacesByZ(a, b) {
+    if (averageZ(a[0]) > averageZ(b[0])) {
+        return 1;
+    } else {
+        return -1;
+    }
+
+}
+
+function GenerateCubeEdges() {
     radius = 100;
     pitch = document.getElementById("pitch").value;
     yaw = document.getElementById("yaw").value;
     roll = document.getElementById("roll").value;
-    DrawPoints(CalculatePoints(radius, pitch, yaw, roll), offsetX, offsetY);
+    RenderPolygonEdges(FindEdges(radius, pitch, yaw, roll), perspectiveMult);
+}
+
+function GenerateCubeFaces() {
+    radius = 100;
+    pitch = document.getElementById("pitch").value;
+    yaw = document.getElementById("yaw").value;
+    roll = document.getElementById("roll").value;
+    RenderPolygonFaces(FindFaces(radius, pitch, yaw, roll), perspectiveMult);
 }
 
 function RotateCube(pitch, yaw, roll) {
@@ -161,8 +241,26 @@ let autoRoll = 0;
 let rotateInterval;
 function AutoRotate() {
     clearInterval(rotateInterval);1;
-    rotateInterval = setInterval(RotateCube, 20, autoPitch, autoYaw, autoRoll);
+    if (autoPitch || autoYaw || autoRoll) {
+        rotateInterval = setInterval(RotateCube, 20, autoPitch, autoYaw, autoRoll);
+    }
 }
 
-GenerateCube();
+let cubeType = 1;
+function GenerateCube() {
+    perspectiveMult = document.getElementById("perspective").value;
+    if (cubeType == 0) {
+        GenerateCubeEdges();
+    } else if (cubeType == 1) {
+        GenerateCubeFaces();
+    }
+}
 
+function setCubeType(n) {
+    cubeType = n;
+    GenerateCube();
+}
+
+
+let perspectiveMult = 5;
+GenerateCube();

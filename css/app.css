@@ -18,7 +18,8 @@ label {
   text-align: center;
   width: 100%; }
 
-.autorotate {
+.autorotate,
+.cube-model {
   margin-top: 5px;
   width: 100%;
   display: flex;
